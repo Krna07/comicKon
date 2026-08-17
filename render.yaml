@@ -1,0 +1,31 @@
+services:
+  # ── Backend API (Node/Express) ──────────────────────────────
+  - type: web
+    name: dhuaa-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGO_URI
+        sync: false          # set this manually in Render dashboard
+      - key: PORT
+        value: 5000
+      - key: ADMIN_USERNAME
+        value: karan
+      - key: ADMIN_PASSWORD
+        sync: false          # set this manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false          # set this manually in Render dashboard
+
+  # ── Frontend (React/Vite) ───────────────────────────────────
+  - type: web
+    name: dhuaa-frontend
+    runtime: static
+    rootDir: .
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
