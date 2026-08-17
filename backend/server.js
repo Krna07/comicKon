@@ -9,14 +9,16 @@ dotenv.config();
 const app = express();
 
 // Middleware
+// Allow all origins — public comic site accessible by anyone
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.FRONTEND_URL || 'https://comickon.onrender.com'
-  ],
-  credentials: true
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false   // must be false when origin is '*'
 }));
+
+// Handle preflight OPTIONS requests for all routes
+app.options('*', cors());
 app.use(express.json());
 
 // Serve uploaded panel images statically
