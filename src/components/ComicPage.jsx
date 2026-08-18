@@ -1,76 +1,88 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import SpeechBubble from './SpeechBubble';
 
+const BACKEND = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace('/api', '')
+  : 'https://comickon.onrender.com';
+
+function resolveImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `${BACKEND}${url}`;
+}
+
 function FullPagePanel({ panel, showCaption }) {
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
+  const [error,  setError]  = useState(false);
+  const src = resolveImageUrl(panel.imageUrl);
 
   return (
     <motion.div
       className="w-full flex flex-col"
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Full-page image with speech bubbles */}
+      {/* Image container */}
       <div
-        className="relative w-full border-4 border-amber-400 bg-gradient-to-b from-sky-50 to-indigo-50/50 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300"
-        style={{ lineHeight: 0 }}
+        className="relative w-full overflow-hidden rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/10"
+        style={{ lineHeight: 0, background: '#0d0d0d' }}
       >
-        {/* Skeleton loader */}
+        {/* Skeleton */}
         {!loaded && !error && (
-          <div className="w-full aspect-[595/842] bg-sky-100/70 flex items-center justify-center animate-pulse backdrop-blur-xs">
-            <div className="w-10 h-10 border-4 border-amber-400 border-t-rose-500 rounded-full animate-spin shadow-sm" />
+          <div className="w-full aspect-[595/842] flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-gray-900 to-gray-950">
+            <div className="w-10 h-10 rounded-full border-2 border-orange-400/30 border-t-orange-400 animate-spin" />
+            <span className="text-gray-600 text-xs tracking-widest uppercase">Loading...</span>
           </div>
         )}
 
-        {/* Error state */}
+        {/* Error */}
         {error && (
-          <div className="w-full aspect-[595/842] bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col items-center justify-center text-amber-900/60 gap-3 p-4 text-center">
-            <div className="p-3.5 bg-white/80 rounded-full shadow-inner">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
+          <div className="w-full aspect-[595/842] flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-gray-900 to-gray-950 px-8 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <span className="hindi-text text-sm font-bold text-amber-900">चित्र उपलब्ध नहीं</span>
-            <span className="text-xs font-medium text-amber-700/60">Page {panel.pageNumber}</span>
+            <div className="w-full">
+              <p className="hindi-text text-gray-400 text-sm font-semibold">चित्र लोड नहीं हो सका</p>
+              <p className="text-gray-600 text-xs mt-2 break-all leading-relaxed">{src}</p>
+            </div>
           </div>
         )}
 
-        {/* Comic page image */}
         <img
-          src={panel.imageUrl}
-          alt={`Page ${panel.pageNumber}`}
-          className={`w-full h-auto block transition-all duration-500 ${loaded ? 'opacity-100 scale-100' : 'hidden scale-105'}`}
+          src={src}
+          alt={`पृष्ठ ${panel.pageNumber}`}
+          className={`w-full h-auto block transition-opacity duration-700 ${loaded ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
           onLoad={() => setLoaded(true)}
-          onError={() => setError(true)}
+          onError={() => { setError(true); console.error('Image failed:', src); }}
         />
 
-        {/* Optional speech bubbles overlaid */}
         {loaded && panel.dialogues?.map((d, i) => (
-          <SpeechBubble
-            key={i}
-            text={d.text}
-            top={d.top}
-            left={d.left}
-            type={d.type}
-            tail={d.tail}
-          />
+          <SpeechBubble key={i} text={d.text} top={d.top} left={d.left} type={d.type} tail={d.tail} />
         ))}
       </div>
 
-      {/* Narrative caption below the page */}
+      {/* Caption box — full width, auto height, wraps naturally */}
       {showCaption && panel.captionHindi && (
-        <div className="mt-3 w-full rounded-xl bg-white/95 backdrop-blur-md border-2 border-amber-200/80 shadow-md ring-2 ring-amber-400/20 px-5 py-3.5">
-          <p
-            className="text-slate-800 text-sm md:text-base leading-relaxed font-bold text-center"
-            style={{ fontFamily: "'Tiro Devanagari Hindi', serif" }}
-          >
-            {panel.captionHindi}
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="mt-5 w-full rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800/80 border border-white/[0.08] shadow-lg"
+        >
+          <div className="px-6 py-5">
+            <div className="text-orange-400/50 text-3xl font-serif leading-none mb-3 select-none">"</div>
+            <p className="hindi-text text-gray-200 text-sm sm:text-base leading-[2] text-center w-full">
+              {panel.captionHindi}
+            </p>
+            <div className="text-orange-400/50 text-3xl font-serif leading-none mt-3 text-right select-none">"</div>
+          </div>
+        </motion.div>
       )}
     </motion.div>
   );
@@ -78,27 +90,21 @@ function FullPagePanel({ panel, showCaption }) {
 
 export default function ComicPage({ panels, pageNumber, showCaption }) {
   return (
-    <div className="w-full rounded-3xl bg-gradient-to-br from-amber-50 via-sky-50 to-indigo-50/70 border border-white/60 p-3 sm:p-5 shadow-xl">
-      {/* Page label */}
-      <div className="mb-4 flex items-center justify-center">
-        <span
-          className="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs font-black px-4 py-1 rounded-full shadow-md tracking-wider border border-white/40 uppercase"
-          style={{ fontFamily: 'monospace' }}
-        >
-          ✦ पृष्ठ {pageNumber} ✦
+    <article className="w-full flex flex-col gap-2">
+      {/* Page divider */}
+      <div className="flex items-center gap-4 px-1 mb-4">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent" />
+        <span className="text-gray-600 text-[11px] font-bold tracking-[0.25em] uppercase select-none whitespace-nowrap px-3 py-1.5 border border-gray-800/60 rounded-full bg-white/[0.02]">
+          पृष्ठ {pageNumber}
         </span>
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent" />
       </div>
 
-      {/* Panels — for wide pages it's just one full-width image per page */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {panels.map((panel) => (
-          <FullPagePanel
-            key={panel.panelNumber}
-            panel={panel}
-            showCaption={showCaption}
-          />
+          <FullPagePanel key={panel.panelNumber} panel={panel} showCaption={showCaption} />
         ))}
       </div>
-    </div>
+    </article>
   );
 }
