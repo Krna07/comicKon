@@ -1,17 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   BookOpen, BarChart2, X, RefreshCw, WifiOff,
-  Eye, EyeOff, ChevronUp, PenLine, Loader2
+  Eye, EyeOff, ChevronUp, PenLine, Loader2, ArrowLeft, Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ComicPage from './ComicPage';
 import ProgressBar from './ProgressBar';
 import { useSessionTracker } from '../hooks/useSessionTracker';
-import { fetchComic, fetchAnalytics } from '../api/comicApi';
+import { fetchEpisodeById, fetchEpisodes, fetchAnalytics } from '../api/comicApi';
 
 export default function ComicReader() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const [comic,         setComic]         = useState(null);
+  const [allEpisodes,   setAllEpisodes]   = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
   const [showCaption,   setShowCaption]   = useState(true);
@@ -49,11 +53,17 @@ export default function ComicReader() {
     return () => el.removeEventListener('scroll', fn);
   }, [comic]);
 
+  useEffect(() => { loadComic(); }, [id]);
+
   async function loadComic() {
     try {
       setLoading(true); setError(null);
-      const res = await fetchComic();
-      setComic(res.data);
+      const [comicRes, epRes] = await Promise.all([
+        fetchEpisodeById(id),
+        fetchEpisodes().catch(() => ({ data: [] }))
+      ]);
+      setComic(comicRes.data);
+      setAllEpisodes(epRes.data);
     } catch (err) {
       setError(err.response?.data?.message || 'कॉमिक लोड नहीं हो सकी।');
     } finally { setLoading(false); }
@@ -116,13 +126,21 @@ export default function ComicReader() {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
 
           {/* Title — shrinks, never clips mid-letter */}
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Link to="/" className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
+              <ArrowLeft className="text-gray-400 w-4 h-4" />
+            </Link>
             <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
               <BookOpen className="text-orange-400 w-4 h-4" />
             </div>
-            <h1 className="hindi-text text-white font-bold text-sm sm:text-base leading-snug line-clamp-1">
-              {comic?.title || 'धुआँ'}
-            </h1>
+            <div className="min-w-0">
+              <div className="text-orange-500/60 text-[9px] font-bold uppercase tracking-wider">
+                Episode {comic?.episodeNumber}
+              </div>
+              <h1 className="hindi-text text-white font-bold text-sm leading-none truncate">
+                {comic?.title || 'धुआँ'}
+              </h1>
+            </div>
           </div>
 
           {/* Controls — fixed, never shrink */}
@@ -169,7 +187,10 @@ export default function ComicReader() {
           <div className="w-full px-5 pt-12 pb-10 text-center">
             <div className="flex items-center gap-3 mb-8 px-4">
               <div className="flex-1 h-px bg-gradient-to-r from-transparent to-orange-500/40" />
-              <span className="text-orange-500/60 text-[10px] tracking-[0.3em] uppercase font-bold whitespace-nowrap">Episode 1</span>
+              <span className="text-orange-500/60 text-[10px] tracking-[0.3em] uppercase font-bold whitespace-nowrap">
+                Episode {comic?.episodeNumber}
+                {comic?.episodeTitle ? ` · ${comic.episodeTitle}` : ''}
+              </span>
               <div className="flex-1 h-px bg-gradient-to-l from-transparent to-orange-500/40" />
             </div>
 
@@ -207,31 +228,60 @@ export default function ComicReader() {
               </div>
             ))}
 
-            {/* End card */}
+            {/* End card — smart next episode */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="w-full py-12"
             >
-              <div className="w-full bg-gradient-to-b from-gray-900/80 to-gray-900/40 border border-white/[0.08] rounded-3xl px-8 py-10 flex flex-col items-center gap-6 backdrop-blur-sm">
-                <div className="text-4xl">📖</div>
-                <div className="text-center w-full">
-                  <h3 className="hindi-text text-white text-xl font-black mb-3">— समाप्त —</h3>
-                  <p className="hindi-text text-gray-500 text-sm leading-[2] w-full">
-                    यह अंक यहाँ खत्म होता है।{'\n'}अगला अंक जल्द आएगा...
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-px w-12 bg-gradient-to-r from-transparent to-orange-500/40" />
-                  <span className="text-orange-500/50 text-xs">🔥</span>
-                  <div className="h-px w-12 bg-gradient-to-l from-transparent to-orange-500/40" />
-                </div>
-                <button onClick={scrollToTop}
-                  className="hindi-text flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-8 py-3.5 rounded-xl transition-all text-sm shadow-lg shadow-orange-500/20 whitespace-nowrap">
-                  <ChevronUp size={15} /> फिर से पढ़ें
-                </button>
-              </div>
+              {(() => {
+                const nextEp = allEpisodes.find(e => e.episodeNumber === (comic?.episodeNumber || 0) + 1);
+                return (
+                  <div className="w-full bg-gradient-to-b from-gray-900/80 to-gray-900/40 border border-white/[0.08] rounded-3xl px-8 py-10 flex flex-col items-center gap-6 backdrop-blur-sm">
+                    <div className="text-4xl">📖</div>
+                    <div className="text-center w-full">
+                      <h3 className="hindi-text text-white text-xl font-black mb-3">— समाप्त —</h3>
+                      {nextEp ? (
+                        <>
+                          <p className="hindi-text text-gray-400 text-sm mb-5">
+                            अगला अंक उपलब्ध है!
+                          </p>
+                          <Link to={`/read/${nextEp._id}`}
+                            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-8 py-3.5 rounded-xl transition-all text-sm shadow-lg shadow-orange-500/20">
+                            Episode {nextEp.episodeNumber} पढ़ें →
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <p className="hindi-text text-gray-500 text-sm leading-[2] w-full">
+                            यह अंक यहाँ खत्म होता है।<br />अगला अंक जल्द आएगा...
+                          </p>
+                          <div className="flex items-center gap-2 mt-4 justify-center">
+                            <Lock size={12} className="text-gray-700" />
+                            <span className="hindi-text text-gray-700 text-xs">Episode {(comic?.episodeNumber || 1) + 1} · जल्द आएगा</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-px w-12 bg-gradient-to-r from-transparent to-orange-500/40" />
+                      <span className="text-orange-500/50 text-xs">🔥</span>
+                      <div className="h-px w-12 bg-gradient-to-l from-transparent to-orange-500/40" />
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={scrollToTop}
+                        className="hindi-text flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white font-bold px-6 py-3 rounded-xl transition-all text-sm whitespace-nowrap">
+                        <ChevronUp size={15} /> फिर से पढ़ें
+                      </button>
+                      <Link to="/"
+                        className="hindi-text flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 font-bold px-6 py-3 rounded-xl transition-all text-sm whitespace-nowrap">
+                        सभी अंक
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })()}
             </motion.div>
           </div>
 

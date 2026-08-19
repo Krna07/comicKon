@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import ComicReader from './components/ComicReader';
-import AdminLogin from './admin/AdminLogin';
+import EpisodeList  from './components/EpisodeList';
+import ComicReader  from './components/ComicReader';
+import AdminLogin   from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
 import './App.css';
 
@@ -13,12 +14,16 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public comic reader */}
-        <Route path="/" element={<ComicReader />} />
+        {/* Episode list — homepage */}
+        <Route path="/"          element={<EpisodeList />} />
+
+        {/* Read a specific episode */}
+        <Route path="/read/:id"  element={<ComicReader />} />
 
         {/* Writer's portal */}
-        <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<ProtectedAdmin />} />
+        <Route path="/admin"                element={<AdminLogin />} />
+        <Route path="/admin/dashboard"      element={<ProtectedAdmin />} />
+        <Route path="/admin/dashboard/:id"  element={<ProtectedAdmin />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
