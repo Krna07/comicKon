@@ -1,96 +1,92 @@
 const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const jwt = require('jsonwebtoken');
-const ComicBook = require('../models/Comic');
+const router  = express.Router();
+const multer  = require('multer');
+const path    = require('path');
+const fs      = require('fs');
+const jwt     = require('jsonwebtoken');
+const ComicBook   = require('../models/Comic');
 const { adminAuth } = require('../middleware/authMiddleware');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dhuaa_secret';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
-// ── Multer config: save uploads to /public/panels ──────────────
-const panelsDir = path.join(__dirname, '../../public/panels');
-if (!fs.existsSync(panelsDir)) fs.mkdirSync(panelsDir, { recursive: true });
+// ── Storage: Cloudinary if configured, local disk otherwise ────
+let upload;
+let getUploadedUrl;
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, panelsDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const name = `panel_${Date.now()}${ext}`;
-    cb(null, name);
-  }
-});
+if (process.env.CLOUDINARY_URL) {
+  const { storage } = require('../config/cloudinary');
+  upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } });
+  // Cloudinary puts the permanent URL in req.file.path
+  getUploadedUrl = (req) => req.file?.path || null;
+} else {
+  // Local dev fallback
+  const panelsDir = path.join(__dirname, '../../public/panels');
+  if (!fs.existsSync(panelsDir)) fs.mkdirSync(panelsDir, { recursive: true });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
-  fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-    if (allowed.includes(path.extname(file.originalname).toLowerCase())) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed (jpg, png, webp, gif)'));
-    }
-  }
-});
+  const diskStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, panelsDir),
+    filename:    (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `panel_${Date.now()}${ext}`);
+    },
+  });
+  upload = multer({
+    storage: diskStorage,
+    limits: { fileSize: 20 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const ok = ['.jpg','.jpeg','.png','.webp','.gif'];
+      ok.includes(path.extname(file.originalname).toLowerCase()) ? cb(null, true) : cb(new Error('Images only'));
+    },
+  });
+  getUploadedUrl = (req) => req.file ? `/panels/${req.file.filename}` : null;
+}
 
 // ── POST /api/admin/login ───────────────────────────────────────
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
-
-  const validUsername = process.env.ADMIN_USERNAME || 'karan';
-  const validPassword = process.env.ADMIN_PASSWORD || 'Bihar@1234';
-
-  if (!username || !password || username !== validUsername || password !== validPassword) {
+  const validUser = process.env.ADMIN_USERNAME || 'karan';
+  const validPass = process.env.ADMIN_PASSWORD || 'Bihar@1234';
+  if (!username || !password || username !== validUser || password !== validPass) {
     return res.status(401).json({ message: 'गलत यूज़रनेम या पासवर्ड' });
   }
-
   const token = jwt.sign({ role: 'admin', username }, JWT_SECRET, { expiresIn: '8h' });
   res.json({ token, message: 'Login successful' });
 });
 
-// ── GET /api/admin/comic ── get full comic with all panels ──────
+// ── GET /api/admin/comic ────────────────────────────────────────
 router.get('/comic', adminAuth, async (req, res) => {
   try {
     const comic = await ComicBook.findOne().sort({ createdAt: -1 });
     if (!comic) return res.status(404).json({ message: 'No comic found' });
-    const sorted = { ...comic.toObject(), panels: [...comic.panels].sort((a, b) => a.panelNumber - b.panelNumber) };
+    const sorted = { ...comic.toObject(), panels: [...comic.panels].sort((a, b) => a.pageNumber - b.pageNumber) };
     res.json(sorted);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── PUT /api/admin/comic/meta ── update title/description ───────
+// ── PUT /api/admin/comic/meta ───────────────────────────────────
 router.put('/comic/meta', adminAuth, async (req, res) => {
   try {
-    const { title, description, totalPages } = req.body;
+    const { title, description } = req.body;
     const comic = await ComicBook.findOne().sort({ createdAt: -1 });
     if (!comic) return res.status(404).json({ message: 'No comic found' });
-    if (title)       comic.title = title;
+    if (title)       comic.title       = title;
     if (description) comic.description = description;
-    if (totalPages)  comic.totalPages = totalPages;
     await comic.save();
-    res.json({ message: 'Comic metadata updated', comic });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.json({ message: 'Updated', comic });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── POST /api/admin/panels ── upload image + add new panel ──────
+// ── POST /api/admin/panels ── add new panel ─────────────────────
 router.post('/panels', adminAuth, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No image uploaded' });
 
+    const imageUrl = getUploadedUrl(req);
     const { captionHindi, pageNumber, size } = req.body;
-    const imageUrl = `/panels/${req.file.filename}`;
 
     const comic = await ComicBook.findOne().sort({ createdAt: -1 });
-    if (!comic) return res.status(404).json({ message: 'No comic found. Create one first.' });
+    if (!comic) return res.status(404).json({ message: 'No comic found. Run seed first.' });
 
-    // Auto-assign panelNumber
     const maxPanel = comic.panels.reduce((m, p) => Math.max(m, p.panelNumber), 0);
     const newPanel = {
       panelNumber:  maxPanel + 1,
@@ -98,7 +94,7 @@ router.post('/panels', adminAuth, upload.single('image'), async (req, res) => {
       imageUrl,
       size:         size || 'wide',
       captionHindi: captionHindi || '',
-      dialogues:    []
+      dialogues:    [],
     };
 
     comic.panels.push(newPanel);
@@ -106,15 +102,13 @@ router.post('/panels', adminAuth, upload.single('image'), async (req, res) => {
     await comic.save();
 
     res.status(201).json({ message: 'Panel added', panel: newPanel });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── PUT /api/admin/panels/:panelNumber ── edit caption/page ─────
+// ── PUT /api/admin/panels/:panelNumber ── edit panel ────────────
 router.put('/panels/:panelNumber', adminAuth, upload.single('image'), async (req, res) => {
   try {
-    const pNum = parseInt(req.params.panelNumber);
+    const pNum  = parseInt(req.params.panelNumber);
     const comic = await ComicBook.findOne().sort({ createdAt: -1 });
     if (!comic) return res.status(404).json({ message: 'Comic not found' });
 
@@ -126,74 +120,53 @@ router.put('/panels/:panelNumber', adminAuth, upload.single('image'), async (req
     if (pageNumber   !== undefined) panel.pageNumber   = parseInt(pageNumber);
     if (size         !== undefined) panel.size         = size;
 
-    // Replace image if new one uploaded
     if (req.file) {
-      // Delete old file if it's a local upload
-      if (panel.imageUrl.startsWith('/panels/panel_')) {
-        const oldPath = path.join(panelsDir, path.basename(panel.imageUrl));
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-      }
-      panel.imageUrl = `/panels/${req.file.filename}`;
+      panel.imageUrl = getUploadedUrl(req);
     }
 
     comic.totalPages = Math.max(...comic.panels.map(p => p.pageNumber));
     await comic.save();
     res.json({ message: 'Panel updated', panel });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── DELETE /api/admin/panels/:panelNumber ── remove a panel ─────
+// ── DELETE /api/admin/panels/:panelNumber ───────────────────────
 router.delete('/panels/:panelNumber', adminAuth, async (req, res) => {
   try {
-    const pNum = parseInt(req.params.panelNumber);
+    const pNum  = parseInt(req.params.panelNumber);
     const comic = await ComicBook.findOne().sort({ createdAt: -1 });
     if (!comic) return res.status(404).json({ message: 'Comic not found' });
 
     const idx = comic.panels.findIndex(p => p.panelNumber === pNum);
     if (idx === -1) return res.status(404).json({ message: `Panel ${pNum} not found` });
 
-    const [removed] = comic.panels.splice(idx, 1);
-
-    // Delete the uploaded file if it's a local one
-    if (removed.imageUrl.startsWith('/panels/panel_')) {
-      const filePath = path.join(panelsDir, path.basename(removed.imageUrl));
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
-
-    comic.totalPages = comic.panels.length > 0
-      ? Math.max(...comic.panels.map(p => p.pageNumber))
-      : 0;
+    comic.panels.splice(idx, 1);
+    comic.totalPages = comic.panels.length > 0 ? Math.max(...comic.panels.map(p => p.pageNumber)) : 0;
     await comic.save();
     res.json({ message: `Panel ${pNum} deleted` });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── PUT /api/admin/panels/reorder ── reorder panel numbers ──────
+// ── PUT /api/admin/panels/reorder ───────────────────────────────
 router.put('/panels/reorder', adminAuth, async (req, res) => {
   try {
-    // body: { order: [{ panelNumber, newPanelNumber, newPageNumber }] }
-    const { order } = req.body;
+    const { pages } = req.body;
+    if (!Array.isArray(pages)) return res.status(400).json({ message: 'pages array required' });
+
     const comic = await ComicBook.findOne().sort({ createdAt: -1 });
     if (!comic) return res.status(404).json({ message: 'Comic not found' });
 
-    order.forEach(({ panelNumber, newPanelNumber, newPageNumber }) => {
+    pages.forEach(({ panelNumber, pageNumber }) => {
       const panel = comic.panels.find(p => p.panelNumber === panelNumber);
-      if (panel) {
-        panel.panelNumber = newPanelNumber;
-        panel.pageNumber  = newPageNumber;
-      }
+      if (panel && pageNumber != null) panel.pageNumber = parseInt(pageNumber);
     });
 
     comic.totalPages = Math.max(...comic.panels.map(p => p.pageNumber));
     await comic.save();
-    res.json({ message: 'Panels reordered' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+
+    const sorted = [...comic.panels].sort((a, b) => a.pageNumber - b.pageNumber);
+    res.json({ message: 'Order saved', panels: sorted });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;

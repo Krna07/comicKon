@@ -16,7 +16,9 @@ services:
       - key: ADMIN_PASSWORD
         sync: false          # set this manually in Render dashboard
       - key: JWT_SECRET
-        sync: false          # set this manually in Render dashboard
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false          # set in Render dashboard: cloudinary://api_key:api_secret@cloud_name
 
   # ── Frontend (React/Vite) ───────────────────────────────────
   - type: web

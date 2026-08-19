@@ -42,4 +42,7 @@ export const adminUpdatePanel = (panelNumber, formData) =>
 export const adminDeletePanel = (panelNumber) =>
   api.delete(`/admin/panels/${panelNumber}`);
 
+export const adminReorderPanels = (pages) =>
+  api.put('/admin/panels/reorder', { pages });
+
 export default api;
