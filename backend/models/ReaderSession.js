@@ -8,14 +8,17 @@ const ReaderSessionSchema = new mongoose.Schema(
       unique: true,
       index: true
     },
-    ipAddress: { type: String, default: 'unknown' },
-    userAgent: { type: String, default: '' },
-    pagesRead: { type: [Number], default: [] },
-    maxPageReached: { type: Number, default: 1 },
-    completed: { type: Boolean, default: false },
+    readerName:       { type: String, default: '' },        // user-entered name
+    ipAddress:        { type: String, default: 'unknown' },
+    userAgent:        { type: String, default: '' },
+    pagesRead:        { type: [Number], default: [] },
+    maxPageReached:   { type: Number, default: 1 },
+    completed:        { type: Boolean, default: false },
     timeSpentSeconds: { type: Number, default: 0 },
-    firstVisitedAt: { type: Date, default: Date.now },
-    lastActiveAt: { type: Date, default: Date.now }
+    rating:           { type: Number, default: null, min: 1, max: 10 }, // 1-10 rating
+    ratedAt:          { type: Date, default: null },
+    firstVisitedAt:   { type: Date, default: Date.now },
+    lastActiveAt:     { type: Date, default: Date.now }
   },
   { timestamps: false }
 );

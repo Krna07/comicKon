@@ -24,6 +24,8 @@ const ComicBookSchema = new mongoose.Schema(
     episodeTitle:  { type: String, default: '' },       // e.g. "धुआँ का जन्म"
     description:   { type: String, default: '' },
     coverImage:    { type: String, default: '' },
+    type:          { type: String, enum: ['comic', 'novel'], default: 'comic' },
+    novelContent:  { type: String, default: '' },
     totalPages:    { type: Number, required: true },
     published:     { type: Boolean, default: false },   // false = draft, true = visible to readers
     panels:        [PanelSchema]

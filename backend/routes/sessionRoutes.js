@@ -2,29 +2,27 @@ const express = require('express');
 const router = express.Router();
 const ReaderSession = require('../models/ReaderSession');
 
-// POST /api/sessions/start — initialize or retrieve anonymous session
+// POST /api/sessions/start — initialize or retrieve session, attach reader name
 router.post('/start', async (req, res) => {
   try {
-    const { sessionId } = req.body;
+    const { sessionId, readerName } = req.body;
 
     if (!sessionId) {
       return res.status(400).json({ message: 'sessionId is required' });
     }
 
-    // Get IP address (handle proxies)
     const ipAddress =
       req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
       req.socket?.remoteAddress ||
       'unknown';
-
     const userAgent = req.headers['user-agent'] || '';
 
-    // Upsert: create if not exists, else return existing
     let session = await ReaderSession.findOne({ sessionId });
 
     if (!session) {
       session = await ReaderSession.create({
         sessionId,
+        readerName: readerName || '',
         ipAddress,
         userAgent,
         pagesRead: [1],
@@ -33,9 +31,10 @@ router.post('/start', async (req, res) => {
         lastActiveAt: new Date()
       });
     } else {
-      // Update last active and IP (may have changed)
       session.lastActiveAt = new Date();
       session.ipAddress = ipAddress;
+      // Update name if provided and not set yet
+      if (readerName && !session.readerName) session.readerName = readerName;
       await session.save();
     }
 
@@ -60,22 +59,15 @@ router.put('/progress', async (req, res) => {
       return res.status(404).json({ message: 'Session not found' });
     }
 
-    // Add page to pagesRead if not already recorded
     if (!session.pagesRead.includes(pageNumber)) {
       session.pagesRead.push(pageNumber);
     }
-
-    // Update max page reached
     if (pageNumber > session.maxPageReached) {
       session.maxPageReached = pageNumber;
     }
-
-    // Update time spent
     if (timeSpentSeconds != null && timeSpentSeconds > session.timeSpentSeconds) {
       session.timeSpentSeconds = timeSpentSeconds;
     }
-
-    // Check if completed (reached last page)
     if (totalPages && pageNumber >= totalPages) {
       session.completed = true;
     }
@@ -86,6 +78,45 @@ router.put('/progress', async (req, res) => {
     res.json(session);
   } catch (err) {
     console.error('PUT /api/sessions/progress error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// PUT /api/sessions/rate — submit a rating (1-10)
+router.put('/rate', async (req, res) => {
+  try {
+    const { sessionId, rating, readerName } = req.body;
+
+    if (!sessionId) return res.status(400).json({ message: 'sessionId is required' });
+    if (rating == null || rating < 1 || rating > 10) {
+      return res.status(400).json({ message: 'rating must be between 1 and 10' });
+    }
+
+    let session = await ReaderSession.findOne({ sessionId });
+
+    if (!session) {
+      // Session may not exist if startSession failed silently — create it now
+      session = await ReaderSession.create({
+        sessionId,
+        readerName: readerName || '',
+        rating:    parseInt(rating),
+        ratedAt:   new Date(),
+        pagesRead: [],
+        maxPageReached: 1,
+        firstVisitedAt: new Date(),
+        lastActiveAt:   new Date(),
+      });
+    } else {
+      session.rating  = parseInt(rating);
+      session.ratedAt = new Date();
+      // Attach name if it wasn't stored yet
+      if (readerName && !session.readerName) session.readerName = readerName;
+      await session.save();
+    }
+
+    res.json({ message: 'Rating saved', rating: session.rating });
+  } catch (err) {
+    console.error('PUT /api/sessions/rate error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

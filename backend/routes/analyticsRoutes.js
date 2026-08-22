@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const ReaderSession = require('../models/ReaderSession');
+const { adminAuth } = require('../middleware/authMiddleware');
 
-// GET /api/analytics/summary — reader metrics
+// GET /api/analytics/summary — reader metrics (public enough for the reader stats button)
 router.get('/summary', async (req, res) => {
   try {
     const totalReaders = await ReaderSession.countDocuments();
@@ -10,7 +11,6 @@ router.get('/summary', async (req, res) => {
     const completionRate =
       totalReaders > 0 ? Math.round((completedReaders / totalReaders) * 100) : 0;
 
-    // Average time spent (only sessions with time > 0)
     const avgTimeResult = await ReaderSession.aggregate([
       { $match: { timeSpentSeconds: { $gt: 0 } } },
       { $group: { _id: null, avgTime: { $avg: '$timeSpentSeconds' } } }
@@ -18,7 +18,6 @@ router.get('/summary', async (req, res) => {
     const avgTimeSeconds =
       avgTimeResult.length > 0 ? Math.round(avgTimeResult[0].avgTime) : 0;
 
-    // Most read page
     const mostReadPage = await ReaderSession.aggregate([
       { $unwind: '$pagesRead' },
       { $group: { _id: '$pagesRead', count: { $sum: 1 } } },
@@ -26,11 +25,20 @@ router.get('/summary', async (req, res) => {
       { $limit: 1 }
     ]);
 
-    // Active readers in last 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentReaders = await ReaderSession.countDocuments({
       lastActiveAt: { $gte: oneDayAgo }
     });
+
+    // Rating summary
+    const ratingResult = await ReaderSession.aggregate([
+      { $match: { rating: { $exists: true, $ne: null, $gte: 1 } } },
+      { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }
+    ]);
+    const avgRating = ratingResult.length > 0
+      ? Math.round(ratingResult[0].avg * 10) / 10
+      : null;
+    const totalRatings = ratingResult.length > 0 ? ratingResult[0].count : 0;
 
     res.json({
       totalReaders,
@@ -39,10 +47,35 @@ router.get('/summary', async (req, res) => {
       avgTimeSeconds,
       avgTimeFormatted: formatSeconds(avgTimeSeconds),
       mostReadPage: mostReadPage[0]?._id || 1,
-      recentReaders
+      recentReaders,
+      avgRating,
+      totalRatings,
     });
   } catch (err) {
     console.error('GET /api/analytics/summary error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// GET /api/analytics/ratings — per-user ratings list (admin only)
+router.get('/ratings', adminAuth, async (req, res) => {
+  try {
+    const ratings = await ReaderSession.find({
+      rating: { $exists: true, $ne: null, $gte: 1 }
+    })
+      .sort({ ratedAt: -1 })
+      .select('readerName rating ratedAt firstVisitedAt completed timeSpentSeconds')
+      .lean();
+
+    res.json(ratings.map(r => ({
+      name:      r.readerName || 'Anonymous',
+      rating:    r.rating,
+      ratedAt:   r.ratedAt,
+      completed: r.completed,
+      readTime:  formatSeconds(r.timeSpentSeconds || 0),
+    })));
+  } catch (err) {
+    console.error('GET /api/analytics/ratings error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

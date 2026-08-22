@@ -54,10 +54,9 @@ router.get('/episodes', adminAuth, async (req, res) => {
 // ── POST create new episode ──────────────────────────────────────
 router.post('/episodes', adminAuth, async (req, res) => {
   try {
-    const { title, episodeNumber, episodeTitle, description } = req.body;
+    const { title, episodeNumber, episodeTitle, description, type } = req.body;
     if (!title) return res.status(400).json({ message: 'title is required' });
 
-    // Auto-assign episode number if not provided
     const maxEp = await ComicBook.findOne().sort({ episodeNumber: -1 }).select('episodeNumber');
     const epNum = parseInt(episodeNumber) || ((maxEp?.episodeNumber || 0) + 1);
 
@@ -66,9 +65,11 @@ router.post('/episodes', adminAuth, async (req, res) => {
       episodeNumber: epNum,
       episodeTitle:  episodeTitle || '',
       description:   description  || '',
+      type:          type || 'comic',
       totalPages:    0,
       published:     false,
       panels:        [],
+      novelContent:  '',
     });
 
     res.status(201).json({ message: 'Episode created', episode });
@@ -119,6 +120,25 @@ router.delete('/episodes/:id', adminAuth, async (req, res) => {
   try {
     await ComicBook.findByIdAndDelete(req.params.id);
     res.json({ message: 'Episode deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── PUT reorder panels ────────────────────────────────────────────
+// MUST be defined before /:panelNumber routes so Express doesn't treat "reorder" as a panelNumber
+router.put('/episodes/:id/panels/reorder', adminAuth, async (req, res) => {
+  try {
+    const { pages } = req.body;
+    const comic = await ComicBook.findById(req.params.id);
+    if (!comic) return res.status(404).json({ message: 'Episode not found' });
+
+    pages.forEach(({ panelNumber, pageNumber }) => {
+      const panel = comic.panels.find(p => p.panelNumber === panelNumber);
+      if (panel && pageNumber != null) panel.pageNumber = parseInt(pageNumber);
+    });
+
+    comic.totalPages = Math.max(...comic.panels.map(p => p.pageNumber));
+    await comic.save();
+    res.json({ message: 'Reordered', panels: [...comic.panels].sort((a, b) => a.pageNumber - b.pageNumber) });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -188,21 +208,16 @@ router.delete('/episodes/:id/panels/:panelNumber', adminAuth, async (req, res) =
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── PUT reorder panels ────────────────────────────────────────────
-router.put('/episodes/:id/panels/reorder', adminAuth, async (req, res) => {
+// ── PUT update novel content + optional cover image ─────────────
+router.put('/episodes/:id/novel', adminAuth, upload.single('coverImage'), async (req, res) => {
   try {
-    const { pages } = req.body;
     const comic = await ComicBook.findById(req.params.id);
     if (!comic) return res.status(404).json({ message: 'Episode not found' });
 
-    pages.forEach(({ panelNumber, pageNumber }) => {
-      const panel = comic.panels.find(p => p.panelNumber === panelNumber);
-      if (panel && pageNumber != null) panel.pageNumber = parseInt(pageNumber);
-    });
-
-    comic.totalPages = Math.max(...comic.panels.map(p => p.pageNumber));
+    if (req.body.novelContent !== undefined) comic.novelContent = req.body.novelContent;
+    if (req.file) comic.coverImage = getUploadedUrl(req);
     await comic.save();
-    res.json({ message: 'Reordered', panels: [...comic.panels].sort((a, b) => a.pageNumber - b.pageNumber) });
+    res.json({ message: 'Novel content saved', comic });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 

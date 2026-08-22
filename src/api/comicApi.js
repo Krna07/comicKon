@@ -17,11 +17,14 @@ export const fetchEpisodes    = ()   => api.get('/comic/episodes');
 export const fetchEpisodeById = (id) => api.get(`/comic/${id}`);
 export const fetchComic       = ()   => api.get('/comic');  // legacy
 
-export const startSession    = (sessionId) =>
-  api.post('/sessions/start', { sessionId });
+export const startSession    = (sessionId, readerName) =>
+  api.post('/sessions/start', { sessionId, readerName });
 export const updateProgress  = (sessionId, pageNumber, timeSpentSeconds, totalPages) =>
   api.put('/sessions/progress', { sessionId, pageNumber, timeSpentSeconds, totalPages });
+export const submitRating    = (sessionId, rating, readerName) =>
+  api.put('/sessions/rate', { sessionId, rating, readerName });
 export const fetchAnalytics  = () => api.get('/analytics/summary');
+export const fetchRatings    = () => api.get('/analytics/ratings');
 
 // ── Admin ──────────────────────────────────────────────────────
 export const adminLogin   = (username, password) => api.post('/admin/login', { username, password });
@@ -43,5 +46,9 @@ export const adminDeletePanel = (episodeId, panelNumber) =>
   api.delete(`/admin/episodes/${episodeId}/panels/${panelNumber}`);
 export const adminReorderPanels = (episodeId, pages) =>
   api.put(`/admin/episodes/${episodeId}/panels/reorder`, { pages });
+
+// Novel content (text + optional cover image)
+export const adminUpdateNovelContent = (episodeId, formData) =>
+  api.put(`/admin/episodes/${episodeId}/novel`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 
 export default api;
