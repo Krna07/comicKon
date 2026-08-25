@@ -45,6 +45,9 @@ app.get('/api/health', (req, res) => {
 const PORT      = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/dhuaa_comic';
 
+const dns = require('dns');
+dns.setServers(['1.1.1.1', '8.8.8.8']);
+
 mongoose
   .connect(MONGO_URI)
   .then(() => {
