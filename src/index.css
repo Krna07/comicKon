@@ -4,18 +4,77 @@
   --font-hindi: 'Tiro Devanagari Hindi', 'Baloo 2', serif;
 }
 
+html[data-theme="dark"],
+html:not([data-theme]) {
+  color-scheme: dark;
+  --page-bg: #080808;
+  --page-fg: #f3f4f6;
+  --home-muted: #9ca3af;
+  --home-dim: #6b7280;
+  --home-header-bg: rgba(8, 8, 8, 0.86);
+  --home-header-border: rgba(249, 115, 22, 0.22);
+  --home-chip-bg: rgba(249, 115, 22, 0.1);
+  --home-chip-border: rgba(249, 115, 22, 0.28);
+  --home-chip-hover: rgba(249, 115, 22, 0.18);
+  --home-card: rgba(255, 255, 255, 0.045);
+  --home-card-hover: rgba(255, 255, 255, 0.08);
+  --home-card-border: rgba(255, 255, 255, 0.08);
+  --home-card-hover-border: rgba(249, 115, 22, 0.35);
+  --home-card-shadow: none;
+  --home-cover-bg: #111;
+  --home-glow-1: rgba(249, 115, 22, 0.16);
+  --home-glow-2: rgba(245, 158, 11, 0.12);
+  --home-title-glow: rgba(249, 115, 22, 0.28);
+  --story-text: #e5e7eb;
+  --caption-bg: rgba(20, 20, 20, 0.92);
+  --caption-border: rgba(255, 255, 255, 0.08);
+  --overlay: rgba(0, 0, 0, 0.72);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --bar-track: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --page-bg: #fff7ed;
+  --page-fg: #1f2937;
+  --home-muted: #6b7280;
+  --home-dim: #9ca3af;
+  --home-header-bg: rgba(255, 247, 237, 0.9);
+  --home-header-border: rgba(253, 186, 116, 0.4);
+  --home-chip-bg: #fff;
+  --home-chip-border: #fed7aa;
+  --home-chip-hover: #ffedd5;
+  --home-card: rgba(255, 255, 255, 0.88);
+  --home-card-hover: #fff;
+  --home-card-border: rgba(253, 186, 116, 0.35);
+  --home-card-hover-border: #fb923c;
+  --home-card-shadow: 0 10px 24px -16px rgba(234, 88, 12, 0.45);
+  --home-cover-bg: #fff7ed;
+  --home-glow-1: rgba(253, 186, 116, 0.45);
+  --home-glow-2: rgba(253, 230, 138, 0.5);
+  --home-title-glow: rgba(249, 115, 22, 0.18);
+  --story-text: #1f2937;
+  --caption-bg: #fff;
+  --caption-border: rgba(253, 186, 116, 0.4);
+  --overlay: rgba(15, 23, 42, 0.45);
+  --input-bg: #fff;
+  --input-border: #fed7aa;
+  --bar-track: rgba(253, 186, 116, 0.35);
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background-color: #111;
-  color: #f0f0f0;
+  background-color: var(--page-bg);
+  color: var(--page-fg);
   font-family: var(--font-hindi), sans-serif;
   overflow-x: hidden;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-track { background: var(--page-bg); }
 ::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 2px; }
 
 /* Hindi font helper */
