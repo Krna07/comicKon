@@ -394,3 +394,12 @@
     font-size: clamp(3rem, 5vw, 4.5rem);
   }
 }
+
+/* ── Comickon logo in home header ─────────────────────────── */
+.home-header__logo {
+  height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 0.5rem;
+}

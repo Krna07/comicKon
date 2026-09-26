@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Lock, ChevronRight, PenLine, Sun, Moon, Inbox } from 'lucide-react';
+import { Lock, ChevronRight, PenLine, Sun, Moon, Inbox } from 'lucide-react';
 import { fetchEpisodes } from '../api/comicApi';
 import { useTheme } from '../hooks/useTheme';
 import './EpisodeList.css';
@@ -36,10 +36,11 @@ export default function EpisodeList() {
       <header className="home-header">
         <div className="home-header__inner">
           <div className="home-header__brand">
-            <div className="home-header__mark" aria-hidden="true">
-              <BookOpen size={16} />
-            </div>
-            <h1 className="hindi-text">धुआँ</h1>
+            <img
+              src="/comickonLogo.png"
+              alt="Comickon"
+              className="home-header__logo"
+            />
           </div>
           <div className="home-header__actions">
             <button

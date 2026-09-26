@@ -27,7 +27,9 @@ export const fetchAnalytics  = () => api.get('/analytics/summary');
 export const fetchRatings    = () => api.get('/analytics/ratings');
 
 // ── Admin ──────────────────────────────────────────────────────
-export const adminLogin   = (username, password) => api.post('/admin/login', { username, password });
+export const adminLogin          = (username, password) => api.post('/admin/login', { username, password });
+export const adminChangePassword = (currentPassword, newPassword) =>
+  api.put('/admin/change-password', { currentPassword, newPassword });
 
 // Episode CRUD
 export const adminGetEpisodes    = ()          => api.get('/admin/episodes');

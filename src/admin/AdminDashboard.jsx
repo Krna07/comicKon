@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   BookOpen, Plus, Trash2, Edit3, LogOut, Save, Upload, X,
   ImagePlus, FileText, CheckCircle, AlertCircle,
   Globe, Lock, ArrowLeft, RefreshCw, BarChart2, Loader2, Star, Sparkles,
-  Clock, Inbox, Layers, Pencil, Users, TrendingUp
+  Clock, Inbox, Layers, Pencil, Users, TrendingUp, KeyRound, Eye, EyeOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AdminDashboard.css';
@@ -13,6 +13,7 @@ import {
   adminUpdateEpisodeMeta, adminPublishEpisode, adminDeleteEpisode,
   adminAddPanel, adminUpdatePanel, adminDeletePanel,
   adminReorderPanels, adminUpdateNovelContent, fetchAnalytics, fetchRatings,
+  adminChangePassword,
 } from '../api/comicApi';
 
 const inputCls =
@@ -20,17 +21,11 @@ const inputCls =
 
 const labelCls = 'text-gray-500 text-xs font-semibold uppercase tracking-wide mb-1.5 block';
 
-const cardCls =
-  'bg-white/85 backdrop-blur-xl border border-white/70 rounded-2xl shadow-sm shadow-orange-100/50';
-
 const btnPrimary =
   'inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-xl text-sm shadow-lg shadow-orange-200/80 transition-all py-3';
 
 const overlayCls =
   'fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center px-0 sm:px-4';
-
-const modalCls =
-  'bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md shadow-2xl overflow-hidden';
 
 function Spinner({ light = false, size = 'w-4 h-4' }) {
   return (
@@ -80,10 +75,11 @@ function useToast() {
   return { toasts, success: m => add(m, 'success'), error: m => add(m, 'error') };
 }
 
-function StatCard({ icon: Icon, label, value, tone = 'orange' }) {
+function StatCard({ icon, label, value, tone = 'orange' }) {
+  const IconComp = icon;
   return (
     <div className={`stat-tile stat-tile--${tone}`}>
-      <span className="stat-tile__icon"><Icon size={15} /></span>
+      <span className="stat-tile__icon"><IconComp size={15} /></span>
       <p className="stat-tile__value">{value ?? '—'}</p>
       <p className="stat-tile__label hindi-text">{label}</p>
     </div>
@@ -498,6 +494,176 @@ function CreateEpisodeModal({ onClose, onCreated, toastError }) {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   CHANGE PASSWORD MODAL
+═══════════════════════════════════════════════════════════════ */
+function ChangePasswordModal({ onClose, onSuccess }) {
+  const [current,  setCurrent]  = useState('');
+  const [next,     setNext]     = useState('');
+  const [confirm,  setConfirm]  = useState('');
+  const [showCur,  setShowCur]  = useState(false);
+  const [showNew,  setShowNew]  = useState(false);
+  const [saving,   setSaving]   = useState(false);
+  const [fieldErr, setFieldErr] = useState('');
+
+  function validate() {
+    if (!current)          return 'मौजूदा पासवर्ड दर्ज करें';
+    if (next.length < 6)   return 'नया पासवर्ड कम से कम 6 अक्षर का होना चाहिए';
+    if (next !== confirm)   return 'पासवर्ड मेल नहीं खाते';
+    return '';
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    const err = validate();
+    if (err) { setFieldErr(err); return; }
+    setFieldErr('');
+    setSaving(true);
+    try {
+      const res = await adminChangePassword(current, next);
+      // Backend returns a fresh token — swap it in so session continues
+      if (res.data?.token) {
+        localStorage.setItem('dhuaa_admin_token', res.data.token);
+      }
+      onSuccess();
+    } catch (err) {
+      setFieldErr(err.response?.data?.message || 'Password change failed');
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className={overlayCls}
+      onClick={onClose}
+    >
+      <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="change-pwd-title"
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 60, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+        className="dash-modal"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="dash-modal__head">
+          <div className="dash-modal__head-copy">
+            <div className="dash-modal__icon" aria-hidden="true">
+              <KeyRound size={16} />
+            </div>
+            <div>
+              <h3 id="change-pwd-title">Change Password</h3>
+              <p>Verify your current password to set a new one.</p>
+            </div>
+          </div>
+          <button type="button" className="dash-modal__close" onClick={onClose} aria-label="Close">
+            <X size={15} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <form className="dash-modal__body" onSubmit={submit} noValidate>
+          {/* Current password */}
+          <div className="dash-field">
+            <label htmlFor="cp-current" className={labelCls}>Current Password</label>
+            <div className="dash-pwd-field">
+              <Lock size={14} className="dash-pwd-field__icon" aria-hidden="true" />
+              <input
+                id="cp-current"
+                type={showCur ? 'text' : 'password'}
+                value={current}
+                onChange={e => setCurrent(e.target.value)}
+                placeholder="Existing password"
+                autoComplete="current-password"
+                className={inputCls}
+                style={{ paddingLeft: '2.25rem', paddingRight: '2.5rem' }}
+                autoFocus
+              />
+              <button
+                type="button"
+                className="dash-pwd-field__toggle"
+                onClick={() => setShowCur(v => !v)}
+                aria-label={showCur ? 'Hide' : 'Show'}
+              >
+                {showCur ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+
+          {/* New password */}
+          <div className="dash-field">
+            <label htmlFor="cp-new" className={labelCls}>New Password</label>
+            <div className="dash-pwd-field">
+              <Lock size={14} className="dash-pwd-field__icon" aria-hidden="true" />
+              <input
+                id="cp-new"
+                type={showNew ? 'text' : 'password'}
+                value={next}
+                onChange={e => setNext(e.target.value)}
+                placeholder="Min 6 characters"
+                autoComplete="new-password"
+                className={inputCls}
+                style={{ paddingLeft: '2.25rem', paddingRight: '2.5rem' }}
+              />
+              <button
+                type="button"
+                className="dash-pwd-field__toggle"
+                onClick={() => setShowNew(v => !v)}
+                aria-label={showNew ? 'Hide' : 'Show'}
+              >
+                {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm new password */}
+          <div className="dash-field">
+            <label htmlFor="cp-confirm" className={labelCls}>Confirm New Password</label>
+            <input
+              id="cp-confirm"
+              type="password"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              placeholder="Repeat new password"
+              autoComplete="new-password"
+              className={inputCls}
+            />
+          </div>
+
+          {/* Inline error */}
+          <AnimatePresence>
+            {fieldErr && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="dash-modal__error"
+              >
+                <AlertCircle size={14} />
+                <span className="hindi-text">{fieldErr}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            type="submit"
+            disabled={saving || !current || !next || !confirm}
+            whileTap={{ scale: 0.98 }}
+            className="dash-btn dash-btn--block"
+          >
+            {saving
+              ? <><Spinner light /> Updating…</>
+              : <><KeyRound size={14} /> Update Password</>}
+          </motion.button>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const toast    = useToast();
@@ -523,8 +689,9 @@ export default function AdminDashboard() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [showChangePwd, setShowChangePwd] = useState(false);
 
-  async function loadList() {
+  const loadList = useCallback(async () => {
     setLoadingList(true);
     try {
       const r = await adminGetEpisodes();
@@ -532,9 +699,12 @@ export default function AdminDashboard() {
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load episodes');
     } finally { setLoadingList(false); }
-  }
+  // toast is a plain object (not stable), but toast.error is a closure
+  // over stable setToasts — safe to exclude from deps.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  useEffect(() => { loadList(); }, []);
+  useEffect(() => { loadList(); }, [loadList]);
 
   async function loadAnalytics() {
     try { const r = await fetchAnalytics(); setAnalytics(r.data); }
@@ -564,7 +734,7 @@ export default function AdminDashboard() {
       const pages = {};
       r.data.panels.forEach(p => { pages[p.panelNumber] = p.pageNumber; });
       setLocalPages(pages);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load episode');
       setView('list');
     } finally { setLoadingEp(false); }
@@ -716,6 +886,20 @@ export default function AdminDashboard() {
             <span className="dash-header__divider" aria-hidden="true" />
             <button
               type="button"
+              className="dash-header__btn"
+              onClick={() => setShowChangePwd(true)}
+              aria-label="Change password"
+            >
+              <KeyRound size={14} />
+              <span>Password</span>
+            </button>
+            <Link to="/" className="dash-header__btn" aria-label="Back to reader">
+              <BookOpen size={14} />
+              <span>Reader</span>
+            </Link>
+            <span className="dash-header__divider" aria-hidden="true" />
+            <button
+              type="button"
               className="dash-header__logout"
               onClick={logout}
               aria-label="Logout"
@@ -847,16 +1031,19 @@ export default function AdminDashboard() {
                   {(episode.type === 'novel'
                     ? [['panels', 'Panels', Layers], ['novel', 'Novel', FileText], ['meta', 'Meta', Pencil]]
                     : [['panels', 'Panels', Layers], ['meta', 'Meta', Pencil]]
-                  ).map(([id, label, Icon]) => (
+                  ).map(([id, label, tabIcon]) => {
+                    const TabIcon = tabIcon;
+                    return (
                     <button
                       type="button"
                       key={id}
                       onClick={() => setEpTab(id)}
                       className={`dash-tabs__btn${epTab === id ? ' is-on' : ''}`}
                     >
-                      <Icon size={13} /> {label}
+                      <TabIcon size={13} /> {label}
                     </button>
-                  ))}
+                    );
+                  })}
                 </nav>
 
                 {epTab === 'panels' && (
@@ -1076,6 +1263,17 @@ export default function AdminDashboard() {
           <CreateEpisodeModal
             onClose={() => setShowCreate(false)}
             onCreated={() => { setShowCreate(false); toast.success('Episode created'); loadList(); }}
+            toastError={toast.error}
+          />
+        )}
+
+        {showChangePwd && (
+          <ChangePasswordModal
+            onClose={() => setShowChangePwd(false)}
+            onSuccess={() => {
+              setShowChangePwd(false);
+              toast.success('पासवर्ड सफलतापूर्वक बदल दिया गया ✓');
+            }}
             toastError={toast.error}
           />
         )}

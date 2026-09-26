@@ -344,3 +344,65 @@
     text-align: center;
   }
 }
+
+.admin-login__back-reader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.55rem 1.25rem;
+  color: var(--al-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: 'Tiro Devanagari Hindi', 'Baloo 2', serif;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.12s;
+}
+
+.admin-login__back-reader:hover {
+  color: var(--al-orange);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #fdba74;
+  transform: translateY(-1px);
+}
+
+.admin-login__back-reader:active {
+  transform: scale(0.96);
+}
+
+/* Centre it below the footer */
+.admin-login__shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Comickon logo in admin login banner ─────────────────── */
+.admin-login__logo {
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+  border-radius: 0.85rem;
+  display: block;
+}
+
+/* Override the banner icon container to accommodate the image */
+.admin-login__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  font-size: unset;
+  margin-bottom: 0.75rem;
+  padding: 0;
+}

@@ -41,6 +41,43 @@ router.post('/login', (req, res) => {
   res.json({ token });
 });
 
+// ── PUT change password ──────────────────────────────────────────
+// Writer must know the current password to set a new one.
+// Since credentials live in env vars (no DB), we write the new
+// password to process.env at runtime so it survives until the
+// process restarts — on Render that means a redeploy persists it
+// via the dashboard env var. We also return a fresh JWT so the
+// session stays alive after the change.
+router.put('/change-password', adminAuth, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'currentPassword और newPassword दोनों ज़रूरी हैं' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'नया पासवर्ड कम से कम 6 अक्षर का होना चाहिए' });
+  }
+
+  const storedPassword = process.env.ADMIN_PASSWORD || 'Bihar@1234';
+  if (currentPassword !== storedPassword) {
+    return res.status(401).json({ message: 'मौजूदा पासवर्ड गलत है' });
+  }
+
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ message: 'नया पासवर्ड पुराने से अलग होना चाहिए' });
+  }
+
+  // Update in-process (survives until next restart / redeploy)
+  process.env.ADMIN_PASSWORD = newPassword;
+
+  // Issue a fresh token so the current session continues
+  const username = req.admin?.username || (process.env.ADMIN_USERNAME || 'karan');
+  const token = jwt.sign({ role: 'admin', username }, JWT_SECRET, { expiresIn: '8h' });
+
+  res.json({ message: 'पासवर्ड सफलतापूर्वक बदल दिया गया', token });
+});
+
 // ── GET all episodes (admin — includes drafts) ───────────────────
 router.get('/episodes', adminAuth, async (req, res) => {
   try {

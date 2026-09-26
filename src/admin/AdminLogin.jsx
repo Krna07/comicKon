@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, Eye, EyeOff, User, Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Lock, Eye, EyeOff, User, Sparkles, ArrowRight, AlertCircle, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { adminLogin } from '../api/comicApi';
 import './AdminLogin.css';
@@ -43,7 +43,9 @@ export default function AdminLogin() {
         <div className="admin-login__card">
           <div className="admin-login__banner">
             <div className="admin-login__banner-inner">
-              <div className="admin-login__icon">✍️</div>
+              <div className="admin-login__icon">
+                <img src="/comickonLogo.png" alt="Comickon" className="admin-login__logo" />
+              </div>
               <h1 className="admin-login__title">Writer's Portal</h1>
               <p className="admin-login__subtitle hindi-text">धुआँ Comic Studio</p>
             </div>
@@ -134,6 +136,11 @@ export default function AdminLogin() {
         <p className="admin-login__footer">
           धुआँ Comic Studio · Writer's only portal
         </p>
+
+        <Link to="/" className="admin-login__back-reader">
+          <BookOpen size={14} />
+          Reader पर वापस जाएँ
+        </Link>
       </motion.div>
     </div>
   );

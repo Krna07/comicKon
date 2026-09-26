@@ -1530,3 +1530,59 @@
     flex-shrink: 0;
   }
 }
+
+/* ── Change Password modal helpers ────────────────────────────── */
+
+/* Password input with leading icon + trailing eye toggle */
+.dash-pwd-field {
+  position: relative;
+}
+
+.dash-pwd-field__icon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.dash-pwd-field__toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  color: #9ca3af;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.dash-pwd-field__toggle:hover { color: #4b5563; }
+
+/* Inline error box inside modal */
+.dash-modal__error {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.9rem;
+  color: #dc2626;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.75rem;
+}
+
+.dash-modal__error svg { flex-shrink: 0; }
+
+/* Make the Reader nav link look like the other header buttons */
+.dash-header__btn[href] {
+  text-decoration: none;
+}
