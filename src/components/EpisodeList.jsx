@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, ChevronRight, PenLine, Sun, Moon, Inbox } from 'lucide-react';
+import { BookOpen, Lock, ChevronRight, PenLine, Sun, Moon, Inbox } from 'lucide-react';
 import { fetchEpisodes } from '../api/comicApi';
 import { useTheme } from '../hooks/useTheme';
 import './EpisodeList.css';
