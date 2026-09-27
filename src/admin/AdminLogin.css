@@ -1,12 +1,12 @@
 .admin-login {
-  --al-orange: #f97316;
-  --al-amber: #f59e0b;
-  --al-yellow: #eab308;
-  --al-text: #1f2937;
-  --al-muted: #9ca3af;
-  --al-label: #4b5563;
-  --al-border: #e5e7eb;
-  --al-field: #f9fafb;
+  --al-orange: #ff0000;
+  --al-amber: #bc0202;
+  --al-yellow: #830000;
+  --al-text: #f5f5f5;
+  --al-muted: #999;
+  --al-label: #ccc;
+  --al-border: rgba(188,2,2,0.25);
+  --al-field: rgba(255,255,255,0.05);
   --al-error: #dc2626;
   --al-error-bg: #fef2f2;
   --al-error-border: #fecaca;
@@ -21,7 +21,7 @@
   justify-content: center;
   padding: 1.5rem 1rem;
   overflow: hidden;
-  background: linear-gradient(135deg, #f8fafc 0%, #fff7ed 48%, #fffbeb 100%);
+  background: linear-gradient(135deg, #0a0000 0%, #120000 48%, #0d0000 100%);
   color: var(--al-text);
 }
 
@@ -38,7 +38,7 @@
   right: -80px;
   width: 24rem;
   height: 24rem;
-  background: rgba(253, 186, 116, 0.4);
+  background: rgba(188,2,2,0.3);
 }
 
 .admin-login__blob--bl {
@@ -46,7 +46,7 @@
   left: -60px;
   width: 20rem;
   height: 20rem;
-  background: rgba(253, 230, 138, 0.5);
+  background: rgba(131,0,0,0.2);
 }
 
 .admin-login__blob--mid {
@@ -54,7 +54,7 @@
   left: 25%;
   width: 12rem;
   height: 12rem;
-  background: rgba(254, 249, 195, 0.6);
+  background: rgba(131,0,0,0.12);
 }
 
 .admin-login__shell {
@@ -69,10 +69,10 @@
   grid-template-columns: 0.92fr 1.08fr;
   min-height: 26.5rem;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(20,0,0,0.88);
+  border: 1px solid rgba(188,2,2,0.22);
   border-radius: var(--al-radius-card);
-  box-shadow: 0 25px 50px -12px rgba(255, 237, 213, 0.6);
+  box-shadow: 0 25px 50px -12px rgba(188,2,2,0.3);
   backdrop-filter: blur(24px);
 }
 
@@ -84,7 +84,7 @@
   overflow: hidden;
   padding: 2.5rem 2.25rem;
   text-align: center;
-  background: linear-gradient(160deg, var(--al-orange), var(--al-amber), var(--al-yellow));
+  background: linear-gradient(160deg, #ff0000, #bc0202, #830000);
 }
 
 .admin-login__banner::before {
@@ -209,13 +209,13 @@
 }
 
 .admin-login__control input::placeholder {
-  color: #d1d5db;
+  color: #666;
 }
 
 .admin-login__control input:focus {
   background: #fff;
-  border-color: #fb923c;
-  box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2);
+  border-color: #ff0000;
+  box-shadow: 0 0 0 2px rgba(255,0,0,0.2);
 }
 
 .admin-login__control--password input {
@@ -267,10 +267,10 @@
   color: #fff;
   font-size: 0.875rem;
   font-weight: 700;
-  background: linear-gradient(90deg, var(--al-orange), var(--al-amber));
+  background: linear-gradient(90deg, #ff0000, #bc0202);
   border: 0;
   border-radius: var(--al-radius-field);
-  box-shadow: 0 10px 15px -3px rgba(253, 186, 116, 0.7);
+  box-shadow: 0 10px 15px -3px rgba(255,0,0,0.5);
   cursor: pointer;
   transition: filter 0.15s ease, opacity 0.15s ease;
 }
@@ -304,14 +304,14 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: #f3f4f6;
+  background: rgba(255,255,255,0.06);
 }
 
 .admin-login__secure span {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  color: #d1d5db;
+  color: #666;
   font-size: 0.75rem;
 }
 
@@ -357,8 +357,8 @@
   font-weight: 600;
   font-family: 'Tiro Devanagari Hindi', 'Baloo 2', serif;
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(229, 231, 235, 0.8);
+  background: rgba(131,0,0,0.15);
+  border: 1px solid rgba(188,2,2,0.3);
   border-radius: 999px;
   backdrop-filter: blur(8px);
   transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.12s;
@@ -366,8 +366,8 @@
 
 .admin-login__back-reader:hover {
   color: var(--al-orange);
-  background: rgba(255, 255, 255, 0.9);
-  border-color: #fdba74;
+  background: rgba(188,2,2,0.2);
+  border-color: rgba(188,2,2,0.5);
   transform: translateY(-1px);
 }
 

@@ -15,8 +15,8 @@
   --reader-tray-h: 3.75rem;
   --reader-panel-radius: 0px;
   --reader-gap: 0.35rem;
-  --reader-accent: #f97316;
-  --reader-accent-2: #f59e0b;
+  --reader-accent: #ff0000;
+  --reader-accent-2: #bc0202;
 
   position: relative;
   display: flex;
@@ -74,7 +74,7 @@
   inset: 0 auto auto 0;
   width: 100%;
   height: 2.5px;
-  background: linear-gradient(90deg, #f97316, #f59e0b, #eab308, #f97316);
+  background: linear-gradient(90deg, #ff0000, #bc0202, #830000, #ff0000);
   background-size: 200% 100%;
   animation: reader-shine 6s linear infinite;
 }
@@ -115,7 +115,7 @@
   text-decoration: none;
   transition: color 0.15s, border-color 0.15s, transform 0.15s;
 }
-.reader-back:hover { color: #ea580c; border-color: #fdba74; }
+.reader-back:hover { color: #bc0202; border-color: #bc0202; }
 .reader-back:active { transform: scale(0.93); }
 
 /* ── Episode type icon badge */
@@ -127,9 +127,9 @@
   width: 2.1rem;
   height: 2.1rem;
   color: #fff;
-  background: linear-gradient(145deg, #f97316, #f59e0b);
+  background: linear-gradient(145deg, #ff0000, #bc0202);
   border-radius: 0.6rem;
-  box-shadow: 0 6px 14px -8px rgba(249, 115, 22, 0.7);
+  box-shadow: 0 6px 14px -8px rgba(255,0,0,0.65);
 }
 .reader-header--novel .reader-mark {
   background: linear-gradient(145deg, #7c3aed, #a855f7);
@@ -151,7 +151,7 @@
 }
 
 .reader-header__ep {
-  color: #f97316;
+  color: #ff0000;
   font-size: 0.56rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -168,7 +168,7 @@
   border: 1px solid transparent;
 }
 .reader-header__type.is-comic {
-  color: #ea580c;
+  color: #bc0202;
   background: var(--home-chip-bg);
   border-color: var(--home-chip-border);
 }
@@ -190,7 +190,7 @@
 
 .reader-header__copy > span {
   display: block;
-  color: #f97316;
+  color: #ff0000;
   font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -251,18 +251,18 @@
 }
 
 .reader-chip:hover,
-.reader-icon-btn:hover { color: #ea580c; border-color: #fdba74; }
+.reader-icon-btn:hover { color: #bc0202; border-color: #bc0202; }
 .reader-chip:active,
 .reader-icon-btn:active { transform: scale(0.93); }
 
 .reader-chip.is-on {
-  color: #ea580c;
+  color: #bc0202;
   background: var(--home-chip-bg);
   border-color: var(--home-chip-border);
 }
 
 .reader-chip--writer {
-  color: #ea580c;
+  color: #bc0202;
   background: var(--home-chip-bg);
   border-color: var(--home-chip-border);
 }
@@ -325,7 +325,7 @@
 }
 
 .read-progress__meta span:last-child {
-  color: #f97316;
+  color: #ff0000;
   font-weight: 800;
   font-size: 0.72rem;
 }
@@ -339,7 +339,7 @@
 
 .read-progress__fill {
   height: 100%;
-  background: linear-gradient(90deg, #ea580c, #fbbf24, #f97316);
+  background: linear-gradient(90deg, #bc0202, #bc0202, #ff0000);
   background-size: 200% 100%;
   border-radius: 999px;
   transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
@@ -348,7 +348,7 @@
 
 .reader-header--novel .read-progress__fill,
 .read-progress--novel .read-progress__fill {
-  background: linear-gradient(90deg, #7c3aed, #c084fc, #7c3aed);
+  background: linear-gradient(90deg, #830000, #bc0202, #830000);
 }
 
 .reader-header--novel .read-progress__meta span:last-child,
@@ -389,7 +389,7 @@
 }
 
 .reader-hero__kicker span {
-  color: #f97316;
+  color: #ff0000;
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.22em;
@@ -403,7 +403,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,0,0,0.35), transparent);
 }
 
 .reader-hero h2 {
@@ -537,8 +537,8 @@
   display: block;
   width: 2rem;
   height: 2rem;
-  border: 2.5px solid rgba(249, 115, 22, 0.2);
-  border-top-color: #fb923c;
+  border: 2.5px solid rgba(255,0,0,0.2);
+  border-top-color: #ff0000;
   border-radius: 50%;
   animation: reader-rotate 0.8s linear infinite;
 }
@@ -622,7 +622,7 @@
 .reader-tray__btn:active { transform: scale(0.88); }
 
 .reader-tray__btn.is-on {
-  color: #f97316;
+  color: #ff0000;
 }
 
 .reader-tray__btn svg {
@@ -690,7 +690,7 @@
 
 .reader-header__menu-item:hover {
   background: var(--home-chip-bg);
-  color: #ea580c;
+  color: #bc0202;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -710,7 +710,7 @@
 }
 
 .reader-pill.is-accent {
-  color: #ea580c;
+  color: #bc0202;
   background: var(--home-chip-bg);
   border-color: var(--home-chip-border);
 }
@@ -741,7 +741,7 @@
   justify-content: center;
   width: 4rem;
   height: 4rem;
-  color: #fb923c;
+  color: #ff0000;
   background: var(--home-chip-bg);
   border: 1px solid var(--home-chip-border);
   border-radius: 1rem;
@@ -777,13 +777,13 @@
 }
 
 .reader-spin span {
-  border-top-color: #fb923c;
+  border-top-color: #ff0000;
   animation: reader-rotate 0.9s linear infinite;
 }
 
 .reader-spin i {
   inset: 0.65rem;
-  border-bottom-color: rgba(234, 88, 12, 0.5);
+  border-bottom-color: rgba(188,2,2,0.5);
   animation: reader-rotate 1.4s linear infinite reverse;
 }
 
@@ -806,10 +806,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, #f97316, #f59e0b);
+  background: linear-gradient(145deg, #ff0000, #bc0202);
   border-radius: 1.25rem;
   color: #fff;
-  box-shadow: 0 14px 28px -12px rgba(249, 115, 22, 0.65);
+  box-shadow: 0 14px 28px -12px rgba(255,0,0,0.6);
 }
 
 .reader-gate__head {
@@ -821,7 +821,7 @@
   font-size: clamp(2rem, 8vw, 2.75rem);
   font-weight: 900;
   line-height: 1.1;
-  background: linear-gradient(135deg, #f97316, #f59e0b);
+  background: linear-gradient(135deg, #ff0000, #bc0202);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -856,8 +856,8 @@
 }
 
 .reader-gate input:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+  border-color: #ff0000;
+  box-shadow: 0 0 0 3px rgba(255,0,0,0.18);
 }
 
 .reader-gate__hint {
@@ -880,17 +880,17 @@
   font-size: 0.95rem;
   font-weight: 800;
   font-family: inherit;
-  background: linear-gradient(135deg, #f97316, #f59e0b);
+  background: linear-gradient(135deg, #ff0000, #bc0202);
   border: 0;
   border-radius: 1rem;
-  box-shadow: 0 10px 22px -10px rgba(249, 115, 22, 0.65);
+  box-shadow: 0 10px 22px -10px rgba(255,0,0,0.6);
   cursor: pointer;
   transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
   text-decoration: none;
 }
 
 .reader-btn:hover {
-  box-shadow: 0 14px 28px -10px rgba(249, 115, 22, 0.75);
+  box-shadow: 0 14px 28px -10px rgba(255,0,0,0.7);
 }
 
 .reader-btn:active { transform: scale(0.97); }
@@ -932,10 +932,10 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(145deg, #f97316, #f59e0b);
+  background: linear-gradient(145deg, #ff0000, #bc0202);
   border: 0;
   border-radius: 1rem;
-  box-shadow: 0 12px 24px -10px rgba(249, 115, 22, 0.8);
+  box-shadow: 0 12px 24px -10px rgba(255,0,0,0.75);
   cursor: pointer;
   transition: transform 0.12s, box-shadow 0.15s;
 }
@@ -994,7 +994,7 @@
   font-size: 0.88rem;
 }
 
-.read-card__thanks strong { color: #ea580c; }
+.read-card__thanks strong { color: #bc0202; }
 
 /* Rating number grid */
 .rate-grid {
@@ -1017,18 +1017,18 @@
   transition: transform 0.12s, background 0.12s, border-color 0.12s, color 0.12s;
 }
 
-.rate-grid button:hover { border-color: #fdba74; }
+.rate-grid button:hover { border-color: #bc0202; }
 .rate-grid button:active { transform: scale(0.88); }
 
 .rate-grid button.is-on {
   color: #fff;
-  background: #f97316;
-  border-color: #f97316;
+  background: #ff0000;
+  border-color: #ff0000;
 }
 
 .rate-grid button.is-fill {
-  background: rgba(249, 115, 22, 0.18);
-  color: #ea580c;
+  background: rgba(255,0,0,0.18);
+  color: #bc0202;
   border-color: rgba(249, 115, 22, 0.32);
 }
 
@@ -1047,7 +1047,7 @@
   padding: 0.5rem 0;
 }
 
-.rate-thanks__icon { color: #f97316; flex-shrink: 0; }
+.rate-thanks__icon { color: #ff0000; flex-shrink: 0; }
 
 /* ─────────────────────────────────────────────────────────────
    ANALYTICS MODAL (bottom sheet on mobile)
@@ -1091,7 +1091,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.9rem 1.1rem 1rem;
-  background: linear-gradient(135deg, #f97316, #f59e0b);
+  background: linear-gradient(135deg, #ff0000, #bc0202);
   color: #fff;
 }
 
@@ -1158,7 +1158,7 @@
 .stat-mini--green  svg { color: #059669; }
 .stat-mini--purple svg { color: #7c3aed; }
 .stat-mini--amber  svg { color: #d97706; }
-.stat-mini--orange svg { color: #ea580c; }
+.stat-mini--orange svg { color: #bc0202; }
 .stat-mini--red    svg { color: #dc2626; }
 
 .reader-modal__loading {
@@ -1226,7 +1226,7 @@
 .novel__drop {
   float: left;
   margin: 0.1rem 0.4rem 0 0;
-  color: #f97316;
+  color: #ff0000;
   font-size: clamp(2.5rem, 8vw, 3.25rem);
   font-weight: 900;
   line-height: 0.82;
@@ -1238,7 +1238,7 @@
   gap: 0.75rem;
   width: 100%;
   padding: 0;
-  color: rgba(249, 115, 22, 0.45);
+  color: rgba(255,0,0,0.4);
   font-size: 0.95rem;
 }
 
@@ -1511,7 +1511,7 @@
    PAGE DOTS  (ProgressBar — comic mode, ≤ 12 pages)
 ───────────────────────────────────────────────────────────── */
 .read-progress__pct {
-  color: #f97316;
+  color: #ff0000;
   font-weight: 800;
   font-size: 0.72rem;
 }
@@ -1541,7 +1541,7 @@
 .read-progress__dot--done {
   width: 6px;
   height: 6px;
-  background: #f97316;
+  background: #ff0000;
   opacity: 0.55;
 }
 
@@ -1549,8 +1549,8 @@
 .read-progress__dot--active {
   width: 1.75rem;
   height: 6px;
-  background: linear-gradient(90deg, #f97316, #f59e0b);
-  box-shadow: 0 0 6px rgba(249, 115, 22, 0.55);
+  background: linear-gradient(90deg, #ff0000, #bc0202);
+  box-shadow: 0 0 6px rgba(255,0,0,0.5);
 }
 
 /* Upcoming pages — ghost dots */

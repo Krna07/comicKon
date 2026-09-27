@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-  BookOpen, BarChart2, X, RefreshCw, WifiOff, FileText,
+  BookOpen, BarChart2, X, RefreshCw, WifiOff,
   Eye, EyeOff, ChevronUp, PenLine, Loader2, ArrowLeft,
   Lock, Star, Sun, Moon, User, Users, CheckCircle2,
   Percent, Clock, Flame, MoreHorizontal,
@@ -163,7 +163,6 @@ function ReaderHeader({
   currentPage, totalPages, readPercent,
 }) {
   const isNovel = mode === 'novel';
-  const MarkIcon = isNovel ? FileText : BookOpen;
 
   /* dropdown for desktop overflow */
   const [menuOpen, setMenuOpen] = useState(false);
@@ -549,6 +548,21 @@ export default function ComicReader() {
 
   const { sessionId } = useSessionTracker(currentPage, totalPages, readerName);
 
+  /* ── loadComic — defined first so useEffect can reference it ── */
+  const loadComic = useCallback(async () => {
+    try {
+      setLoading(true); setError(null);
+      const [comicRes, epRes] = await Promise.all([
+        fetchEpisodeById(id),
+        fetchEpisodes().catch(() => ({ data: [] })),
+      ]);
+      setComic(comicRes.data);
+      setAllEpisodes(epRes.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'कॉमिक लोड नहीं हो सकी।');
+    } finally { setLoading(false); }
+  }, [id]);
+
   /* ── load ──────────────────────────────────────────────────── */
   useEffect(() => { loadComic(); }, [loadComic]);
 
@@ -588,20 +602,6 @@ export default function ComicReader() {
     fn();
     return () => el.removeEventListener('scroll', fn);
   }, [comic, isNovel]);
-
-  const loadComic = useCallback(async () => {
-    try {
-      setLoading(true); setError(null);
-      const [comicRes, epRes] = await Promise.all([
-        fetchEpisodeById(id),
-        fetchEpisodes().catch(() => ({ data: [] })),
-      ]);
-      setComic(comicRes.data);
-      setAllEpisodes(epRes.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'कॉमिक लोड नहीं हो सकी।');
-    } finally { setLoading(false); }
-  }, [id]);
 
   async function loadAnalytics() {
     try { const r = await fetchAnalytics(); setAnalytics(r.data); }
