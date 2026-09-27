@@ -3,7 +3,7 @@
   "appName": "comickon",
   "webDir": "dist",
   "server": {
-    "url": "https://dhuaa-frontend.onrender.com",
+    "url": "https://comickon.netlify.app",
     "cleartext": false
   },
   "android": {
