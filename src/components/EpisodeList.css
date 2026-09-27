@@ -403,3 +403,96 @@
   display: block;
   border-radius: 0.5rem;
 }
+
+/* ── Android app download banner ───────────────────────────── */
+.home-apk-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 0.9rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  background: var(--home-card);
+  border: 1px solid rgba(188, 2, 2, 0.35);
+  border-radius: 1.15rem;
+  box-shadow: 0 0 0 0 rgba(188, 2, 2, 0);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle red glow stripe on left edge */
+.home-apk-banner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #ff0000, #830000);
+  border-radius: 1.15rem 0 0 1.15rem;
+}
+
+.home-apk-banner:hover {
+  border-color: #bc0202;
+  box-shadow: 0 8px 24px -12px rgba(188, 2, 2, 0.5);
+  transform: translateY(-1px);
+}
+
+.home-apk-banner:active {
+  transform: scale(0.98);
+}
+
+/* Android robot icon badge */
+.home-apk-banner__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  color: #fff;
+  background: linear-gradient(145deg, #ff0000, #830000);
+  border-radius: 0.85rem;
+  box-shadow: 0 6px 14px -6px rgba(188, 2, 2, 0.7);
+}
+
+.home-apk-banner__copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.home-apk-banner__title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--page-fg);
+  line-height: 1.2;
+}
+
+.home-apk-banner__sub {
+  font-size: 0.72rem;
+  color: var(--home-muted);
+  line-height: 1.3;
+}
+
+/* download pill */
+.home-apk-banner__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #ff0000, #830000);
+  border-radius: 999px;
+  box-shadow: 0 4px 10px -4px rgba(188, 2, 2, 0.6);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

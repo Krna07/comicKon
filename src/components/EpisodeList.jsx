@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Lock, ChevronRight, PenLine, Sun, Moon, Inbox } from 'lucide-react';
+import { BookOpen, Lock, ChevronRight, PenLine, Sun, Moon, Inbox, Smartphone, Download } from 'lucide-react';
 import { fetchEpisodes } from '../api/comicApi';
 import { useTheme } from '../hooks/useTheme';
 import './EpisodeList.css';
+
+const APK_URL = 'https://github.com/Krna07/comicKon/releases/download/v1.0.0/app-release.apk';
+
+// True when running inside the Capacitor Android WebView
+const IS_APP = window.Capacitor?.isNativePlatform?.() === true;
 
 const BACKEND = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace('/api', '')
@@ -64,6 +69,32 @@ export default function EpisodeList() {
           <h2 className="hindi-text">धुआँ</h2>
           <p className="hindi-text">एक रहस्यमयी कहानी जो अँधेरे से जन्म लेती है</p>
         </section>
+
+        {/* Download app banner — only shown in browser, hidden inside the APK */}
+        {!IS_APP && (
+          <motion.a
+            href={APK_URL}
+            className="home-apk-banner"
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            aria-label="Download Comickon Android app"
+          >
+            <div className="home-apk-banner__icon" aria-hidden="true">
+              <Smartphone size={22} />
+            </div>
+            <div className="home-apk-banner__copy">
+              <span className="home-apk-banner__title">Get the App</span>
+              <span className="home-apk-banner__sub hindi-text">Android के लिए डाउनलोड करें</span>
+            </div>
+            <div className="home-apk-banner__btn" aria-hidden="true">
+              <Download size={15} />
+              <span>APK</span>
+            </div>
+          </motion.a>
+        )}
 
         <h3 className="home-list__head">All Episodes</h3>
 
