@@ -1,5 +1,13 @@
 {
   "appId": "com.tushar.comickon",
   "appName": "comickon",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "url": "https://dhuaa-frontend.onrender.com",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  }
 }
