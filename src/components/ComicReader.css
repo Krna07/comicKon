@@ -1068,10 +1068,11 @@
   width: 100%;
   max-width: 28rem;
   overflow: hidden;
-  background: var(--page-bg);
-  border: 1px solid var(--home-card-border);
+  background: linear-gradient(180deg, #d92a2a 0%, #ba0d0d 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 1.5rem 1.5rem 0 0;
-  box-shadow: 0 -8px 40px -10px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 -10px 40px -16px rgba(0, 0, 0, 0.7);
 }
 
 /* Drag handle */
@@ -1091,8 +1092,8 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.9rem 1.1rem 1rem;
-  background: linear-gradient(135deg, #ff0000, #bc0202);
-  color: #fff;
+  background: linear-gradient(135deg, #f97316, #ef4444 58%, #b91c1c);
+  color: #fff7ed;
 }
 
 .reader-modal__head-title {
@@ -1126,6 +1127,7 @@
 
 .reader-modal__body {
   padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, #d92a2a 0%, #b90b0b 100%);
 }
 
 /* Stat grid — 2 columns on mobile, 3 on wider */
@@ -1137,9 +1139,11 @@
 
 .stat-mini {
   padding: 0.85rem 0.9rem;
-  background: var(--home-card);
-  border: 1px solid var(--home-card-border);
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.9rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #fff;
 }
 
 .stat-mini strong {
@@ -1147,10 +1151,11 @@
   margin: 0.3rem 0 0.12rem;
   font-size: 1.1rem;
   font-weight: 900;
+  color: #ffffff;
 }
 
 .stat-mini span {
-  color: var(--home-dim);
+  color: #f1d8c6;
   font-size: 0.68rem;
 }
 

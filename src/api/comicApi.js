@@ -17,14 +17,14 @@ export const fetchEpisodes    = ()   => api.get('/comic/episodes');
 export const fetchEpisodeById = (id) => api.get(`/comic/${id}`);
 export const fetchComic       = ()   => api.get('/comic');  // legacy
 
-export const startSession    = (sessionId, readerName) =>
-  api.post('/sessions/start', { sessionId, readerName });
-export const updateProgress  = (sessionId, pageNumber, timeSpentSeconds, totalPages) =>
-  api.put('/sessions/progress', { sessionId, pageNumber, timeSpentSeconds, totalPages });
-export const submitRating    = (sessionId, rating, readerName) =>
-  api.put('/sessions/rate', { sessionId, rating, readerName });
-export const fetchAnalytics  = () => api.get('/analytics/summary');
-export const fetchRatings    = () => api.get('/analytics/ratings');
+export const startSession = (sessionId, readerName, episodeId = null, episodeTitle = '', episodeNumber = null) =>
+  api.post('/sessions/start', { sessionId, readerName, episodeId, episodeTitle, episodeNumber });
+export const updateProgress = (sessionId, pageNumber, timeSpentSeconds, totalPages, episodeId = null) =>
+  api.put('/sessions/progress', { sessionId, pageNumber, timeSpentSeconds, totalPages, episodeId });
+export const submitRating = (sessionId, rating, readerName, episodeId = null) =>
+  api.put('/sessions/rate', { sessionId, rating, readerName, episodeId });
+export const fetchAnalytics = () => api.get('/analytics/summary');
+export const fetchRatings = () => api.get('/analytics/ratings');
 
 // ── Admin ──────────────────────────────────────────────────────
 export const adminLogin          = (username, password) => api.post('/admin/login', { username, password });

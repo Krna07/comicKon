@@ -730,6 +730,7 @@ export default function AdminDashboard() {
         episodeNumber: r.data.episodeNumber,
         episodeTitle:  r.data.episodeTitle,
         description:   r.data.description,
+        type:          r.data.type || 'comic',
       });
       const pages = {};
       r.data.panels.forEach(p => { pages[p.panelNumber] = p.pageNumber; });
@@ -1110,6 +1111,33 @@ export default function AdminDashboard() {
                 {epTab === 'meta' && (
                   <div className="dash-form">
                     <h3>Episode Details</h3>
+
+                    {/* ── Content type switcher ── */}
+                    <div>
+                      <label className={labelCls}>Content Type</label>
+                      <div className="dash-modal__picks" role="group" aria-label="Episode type">
+                        <button
+                          type="button"
+                          className={`dash-pick${metaForm.type === 'comic' ? ' is-on' : ''}`}
+                          onClick={() => setMetaForm(f => ({ ...f, type: 'comic' }))}
+                          aria-pressed={metaForm.type === 'comic'}
+                        >
+                          <span className="dash-pick__icon"><BookOpen size={14} /></span>
+                          <strong>Comic</strong>
+                          <span>Panels &amp; images</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`dash-pick${metaForm.type === 'novel' ? ' is-on' : ''}`}
+                          onClick={() => setMetaForm(f => ({ ...f, type: 'novel' }))}
+                          aria-pressed={metaForm.type === 'novel'}
+                        >
+                          <span className="dash-pick__icon"><FileText size={14} /></span>
+                          <strong>Novel</strong>
+                          <span>Hindi story text</span>
+                        </button>
+                      </div>
+                    </div>
                     <div className="dash-form__row">
                       <div className="dash-form__grow">
                         <label className={labelCls}>Title *</label>

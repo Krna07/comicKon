@@ -18,9 +18,8 @@ import './ComicReader.css';
 /* ─── helpers ──────────────────────────────────────────────── */
 function getEpisodeMode(episode) {
   if (!episode) return 'comic';
+  // Always trust the explicit type set by the writer — never guess from content
   if (episode.type === 'novel') return 'novel';
-  if (episode.type === 'comic') return 'comic';
-  if (episode.novelContent?.trim() && !episode.panels?.length) return 'novel';
   return 'comic';
 }
 
@@ -431,7 +430,7 @@ function ReaderTray({
 /* ═══════════════════════════════════════════════════════════════
    RATING CARD
 ═══════════════════════════════════════════════════════════════ */
-function RatingCard({ sessionId, readerName, episodeTitle, onRated }) {
+function RatingCard({ sessionId, readerName, episodeTitle, episodeId, onRated }) {
   const [selected,  setSelected]  = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [saving,    setSaving]    = useState(false);
@@ -440,7 +439,7 @@ function RatingCard({ sessionId, readerName, episodeTitle, onRated }) {
     if (!selected) return;
     setSaving(true);
     try {
-      await submitRating(sessionId, selected, readerName);
+      await submitRating(sessionId, selected, readerName, episodeId);
       setSubmitted(true);
       setTimeout(() => onRated(selected), 1200);
     } catch {
@@ -546,7 +545,14 @@ export default function ComicReader() {
   const episodeMode = comic ? getEpisodeMode(comic) : 'comic';
   const isNovel = episodeMode === 'novel';
 
-  const { sessionId } = useSessionTracker(currentPage, totalPages, readerName);
+  const { sessionId } = useSessionTracker(
+    currentPage,
+    totalPages,
+    readerName,
+    comic?._id,
+    comic?.title,
+    comic?.episodeNumber
+  );
 
   /* ── loadComic — defined first so useEffect can reference it ── */
   const loadComic = useCallback(async () => {
@@ -675,6 +681,7 @@ export default function ComicReader() {
             sessionId={sessionId}
             readerName={readerName}
             episodeTitle={comic?.title}
+            episodeId={comic?._id}
             onRated={r => setUserRating(r)}
           />
         )}
@@ -872,15 +879,52 @@ export default function ComicReader() {
 
               <div className="reader-modal__body">
                 {analytics ? (
-                  <div className="stat-grid">
-                    {STAT_ITEMS(analytics).map(s => (
-                      <div key={s.label} className={`stat-mini stat-mini--${s.tone}`}>
-                        <s.Icon size={15} />
-                        <strong>{s.value}</strong>
-                        <span className="hindi-text">{s.label}</span>
+                  <>
+                    <div className="stat-grid">
+                      {STAT_ITEMS(analytics).map(s => (
+                        <div key={s.label} className={`stat-mini stat-mini--${s.tone}`}>
+                          <s.Icon size={15} />
+                          <strong>{s.value}</strong>
+                          <span className="hindi-text">{s.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {analytics.episodes?.length > 0 && (
+                      <div style={{ marginTop: '1rem', display: 'grid', gap: '0.65rem' }}>
+                        <h4 style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }} className="hindi-text">
+                          एपिसोड वाइस रिपोर्ट
+                        </h4>
+                        {analytics.episodes.map(ep => (
+                          <div
+                            key={ep._id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              gap: '0.75rem',
+                              padding: '0.7rem 0.8rem',
+                              borderRadius: '12px',
+                              background: 'rgba(255,255,255,0.04)',
+                              border: '1px solid rgba(255,255,255,0.08)',
+                              color: '#fff7ed',
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#fff7ed' }}>
+                                Episode {ep.episodeNumber || 1}: {ep.title || 'Untitled'}
+                              </div>
+                              <div style={{ fontSize: '0.68rem', opacity: 0.8, color: '#fdba74' }}>
+                                {ep.totalReaders || 0} readers • {ep.completedReaders || 0} completed
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', fontWeight: 700, fontSize: '0.78rem', color: '#fff7ed' }}>
+                              {ep.avgRating ? `${ep.avgRating}/10` : 'No rating'}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <div className="reader-modal__loading">
                     <Loader2 size={22} className="animate-spin" />
