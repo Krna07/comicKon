@@ -126,7 +126,7 @@ router.get('/episodes/:id', adminAuth, async (req, res) => {
 // ── PUT update episode meta ──────────────────────────────────────
 router.put('/episodes/:id/meta', adminAuth, async (req, res) => {
   try {
-    const { title, episodeTitle, description, episodeNumber } = req.body;
+    const { title, episodeTitle, description, episodeNumber, type } = req.body;
     const comic = await ComicBook.findById(req.params.id);
     if (!comic) return res.status(404).json({ message: 'Episode not found' });
 
@@ -134,6 +134,7 @@ router.put('/episodes/:id/meta', adminAuth, async (req, res) => {
     if (episodeTitle  !== undefined) comic.episodeTitle  = episodeTitle;
     if (description   !== undefined) comic.description   = description;
     if (episodeNumber !== undefined) comic.episodeNumber = parseInt(episodeNumber);
+    if (type          !== undefined && ['comic', 'novel'].includes(type)) comic.type = type;
     await comic.save();
     res.json({ message: 'Updated', comic });
   } catch (err) { res.status(500).json({ message: err.message }); }

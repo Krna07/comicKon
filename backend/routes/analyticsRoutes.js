@@ -1,24 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const ReaderSession = require('../models/ReaderSession');
+const ComicBook = require('../models/Comic');
 const { adminAuth } = require('../middleware/authMiddleware');
 
-// GET /api/analytics/summary — reader metrics (public enough for the reader stats button)
+// GET /api/analytics/summary — overall + episode-by-episode reader metrics
 router.get('/summary', async (req, res) => {
   try {
-    const totalReaders = await ReaderSession.countDocuments();
-    const completedReaders = await ReaderSession.countDocuments({ completed: true });
+    const totalReaders = await ReaderSession.countDocuments({ episodeId: { $exists: true, $ne: '' } });
+    const completedReaders = await ReaderSession.countDocuments({ completed: true, episodeId: { $exists: true, $ne: '' } });
     const completionRate =
       totalReaders > 0 ? Math.round((completedReaders / totalReaders) * 100) : 0;
 
     const avgTimeResult = await ReaderSession.aggregate([
-      { $match: { timeSpentSeconds: { $gt: 0 } } },
+      { $match: { timeSpentSeconds: { $gt: 0 }, episodeId: { $exists: true, $ne: '' } } },
       { $group: { _id: null, avgTime: { $avg: '$timeSpentSeconds' } } }
     ]);
     const avgTimeSeconds =
       avgTimeResult.length > 0 ? Math.round(avgTimeResult[0].avgTime) : 0;
 
     const mostReadPage = await ReaderSession.aggregate([
+      { $match: { episodeId: { $exists: true, $ne: '' } } },
       { $unwind: '$pagesRead' },
       { $group: { _id: '$pagesRead', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
@@ -27,18 +29,57 @@ router.get('/summary', async (req, res) => {
 
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentReaders = await ReaderSession.countDocuments({
-      lastActiveAt: { $gte: oneDayAgo }
+      lastActiveAt: { $gte: oneDayAgo },
+      episodeId: { $exists: true, $ne: '' }
     });
 
-    // Rating summary
     const ratingResult = await ReaderSession.aggregate([
-      { $match: { rating: { $exists: true, $ne: null, $gte: 1 } } },
+      { $match: { rating: { $exists: true, $ne: null, $gte: 1 }, episodeId: { $exists: true, $ne: '' } } },
       { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }
     ]);
     const avgRating = ratingResult.length > 0
       ? Math.round(ratingResult[0].avg * 10) / 10
       : null;
     const totalRatings = ratingResult.length > 0 ? ratingResult[0].count : 0;
+
+    const episodeStats = await ReaderSession.aggregate([
+      { $match: { episodeId: { $exists: true, $ne: '' } } },
+      { $group: {
+          _id: '$episodeId',
+          totalReaders: { $sum: 1 },
+          completedReaders: { $sum: { $cond: ['$completed', 1, 0] } },
+          avgRating: { $avg: { $cond: [{ $and: [{ $ne: ['$rating', null] }, { $gte: ['$rating', 1] }] }, '$rating', null] } },
+          totalRatings: { $sum: { $cond: [{ $and: [{ $ne: ['$rating', null] }, { $gte: ['$rating', 1] }] }, 1, 0] } }
+        }
+      },
+      { $sort: { totalReaders: -1, _id: 1 } }
+    ]);
+
+    const episodeIds = episodeStats.map(s => s._id);
+    const episodes = await ComicBook.find({ _id: { $in: episodeIds } })
+      .select('_id title episodeNumber episodeTitle')
+      .lean();
+
+    const episodeMap = new Map(episodes.map(ep => [String(ep._id), ep]));
+
+    const episodeResults = episodeStats.map(stat => {
+      const base = episodeMap.get(String(stat._id)) || {};
+      const avgRatingValue = stat.totalRatings > 0 && stat.avgRating != null
+        ? Math.round(stat.avgRating * 10) / 10
+        : null;
+
+      return {
+        _id: stat._id,
+        title: base.title || 'Untitled Episode',
+        episodeNumber: base.episodeNumber ?? 1,
+        episodeTitle: base.episodeTitle || '',
+        totalReaders: stat.totalReaders || 0,
+        completedReaders: stat.completedReaders || 0,
+        completionRate: stat.totalReaders > 0 ? Math.round((stat.completedReaders / stat.totalReaders) * 100) : 0,
+        avgRating: avgRatingValue,
+        totalRatings: stat.totalRatings || 0,
+      };
+    });
 
     res.json({
       totalReaders,
@@ -50,6 +91,7 @@ router.get('/summary', async (req, res) => {
       recentReaders,
       avgRating,
       totalRatings,
+      episodes: episodeResults,
     });
   } catch (err) {
     console.error('GET /api/analytics/summary error:', err);

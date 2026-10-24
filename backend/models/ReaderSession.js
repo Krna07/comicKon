@@ -8,14 +8,17 @@ const ReaderSessionSchema = new mongoose.Schema(
       unique: true,
       index: true
     },
-    readerName:       { type: String, default: '' },        // user-entered name
+    episodeId:        { type: String, default: '' },           // Mongo ObjectId as string for the episode
+    episodeTitle:     { type: String, default: '' },
+    episodeNumber:    { type: Number, default: null },
+    readerName:       { type: String, default: '' },
     ipAddress:        { type: String, default: 'unknown' },
     userAgent:        { type: String, default: '' },
     pagesRead:        { type: [Number], default: [] },
     maxPageReached:   { type: Number, default: 1 },
     completed:        { type: Boolean, default: false },
     timeSpentSeconds: { type: Number, default: 0 },
-    rating:           { type: Number, default: null, min: 1, max: 10 }, // 1-10 rating
+    rating:           { type: Number, default: null, min: 1, max: 10 },
     ratedAt:          { type: Date, default: null },
     firstVisitedAt:   { type: Date, default: Date.now },
     lastActiveAt:     { type: Date, default: Date.now }

@@ -5,7 +5,7 @@ const ReaderSession = require('../models/ReaderSession');
 // POST /api/sessions/start — initialize or retrieve session, attach reader name
 router.post('/start', async (req, res) => {
   try {
-    const { sessionId, readerName } = req.body;
+    const { sessionId, readerName, episodeId, episodeTitle, episodeNumber } = req.body;
 
     if (!sessionId) {
       return res.status(400).json({ message: 'sessionId is required' });
@@ -17,11 +17,16 @@ router.post('/start', async (req, res) => {
       'unknown';
     const userAgent = req.headers['user-agent'] || '';
 
-    let session = await ReaderSession.findOne({ sessionId });
+    let session = episodeId
+      ? await ReaderSession.findOne({ sessionId, episodeId })
+      : await ReaderSession.findOne({ sessionId });
 
     if (!session) {
       session = await ReaderSession.create({
         sessionId,
+        episodeId: episodeId || '',
+        episodeTitle: episodeTitle || '',
+        episodeNumber: episodeNumber ? Number(episodeNumber) : null,
         readerName: readerName || '',
         ipAddress,
         userAgent,
@@ -33,7 +38,9 @@ router.post('/start', async (req, res) => {
     } else {
       session.lastActiveAt = new Date();
       session.ipAddress = ipAddress;
-      // Update name if provided and not set yet
+      if (episodeId) session.episodeId = episodeId;
+      if (episodeTitle) session.episodeTitle = episodeTitle;
+      if (episodeNumber != null) session.episodeNumber = Number(episodeNumber);
       if (readerName && !session.readerName) session.readerName = readerName;
       await session.save();
     }
@@ -48,25 +55,33 @@ router.post('/start', async (req, res) => {
 // PUT /api/sessions/progress — update reading progress
 router.put('/progress', async (req, res) => {
   try {
-    const { sessionId, pageNumber, timeSpentSeconds, totalPages } = req.body;
+    const { sessionId, pageNumber, timeSpentSeconds, totalPages, episodeId } = req.body;
 
     if (!sessionId || pageNumber == null) {
       return res.status(400).json({ message: 'sessionId and pageNumber are required' });
     }
 
-    const session = await ReaderSession.findOne({ sessionId });
+    let session = episodeId
+      ? await ReaderSession.findOne({ sessionId, episodeId })
+      : await ReaderSession.findOne({ sessionId });
+
+    if (!session && episodeId) {
+      session = await ReaderSession.findOne({ sessionId });
+    }
+
     if (!session) {
       return res.status(404).json({ message: 'Session not found' });
     }
 
+    if (episodeId) session.episodeId = episodeId;
+    if (timeSpentSeconds != null && timeSpentSeconds > session.timeSpentSeconds) {
+      session.timeSpentSeconds = timeSpentSeconds;
+    }
     if (!session.pagesRead.includes(pageNumber)) {
       session.pagesRead.push(pageNumber);
     }
     if (pageNumber > session.maxPageReached) {
       session.maxPageReached = pageNumber;
-    }
-    if (timeSpentSeconds != null && timeSpentSeconds > session.timeSpentSeconds) {
-      session.timeSpentSeconds = timeSpentSeconds;
     }
     if (totalPages && pageNumber >= totalPages) {
       session.completed = true;
@@ -85,36 +100,42 @@ router.put('/progress', async (req, res) => {
 // PUT /api/sessions/rate — submit a rating (1-10)
 router.put('/rate', async (req, res) => {
   try {
-    const { sessionId, rating, readerName } = req.body;
+    const { sessionId, rating, readerName, episodeId } = req.body;
 
     if (!sessionId) return res.status(400).json({ message: 'sessionId is required' });
     if (rating == null || rating < 1 || rating > 10) {
       return res.status(400).json({ message: 'rating must be between 1 and 10' });
     }
 
-    let session = await ReaderSession.findOne({ sessionId });
+    let session = episodeId
+      ? await ReaderSession.findOne({ sessionId, episodeId })
+      : await ReaderSession.findOne({ sessionId });
+
+    if (!session && episodeId) {
+      session = await ReaderSession.findOne({ sessionId });
+    }
 
     if (!session) {
-      // Session may not exist if startSession failed silently — create it now
       session = await ReaderSession.create({
         sessionId,
+        episodeId: episodeId || '',
         readerName: readerName || '',
-        rating:    parseInt(rating),
-        ratedAt:   new Date(),
+        rating: parseInt(rating),
+        ratedAt: new Date(),
         pagesRead: [],
         maxPageReached: 1,
         firstVisitedAt: new Date(),
-        lastActiveAt:   new Date(),
+        lastActiveAt: new Date(),
       });
     } else {
-      session.rating  = parseInt(rating);
+      session.rating = parseInt(rating);
       session.ratedAt = new Date();
-      // Attach name if it wasn't stored yet
+      if (episodeId) session.episodeId = episodeId;
       if (readerName && !session.readerName) session.readerName = readerName;
       await session.save();
     }
 
-    res.json({ message: 'Rating saved', rating: session.rating });
+    res.json({ message: 'Rating saved', rating: session.rating, episodeId: session.episodeId || episodeId });
   } catch (err) {
     console.error('PUT /api/sessions/rate error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
